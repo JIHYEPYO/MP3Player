@@ -1,6 +1,5 @@
 package com.example.pyojihye.mp3player;
 
-import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -14,6 +13,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -29,12 +29,13 @@ import com.google.firebase.storage.StorageReference;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPreparedListener, AdapterView.OnItemClickListener {
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
     private static final int REQUEST_RUNTIME_PERMISSION = 1;
     final static String TAG = "MainActivity";
     private final String MESSAGES_CHILD = "music";
 
-    ListView listView;
+    private ProgressBar mProgressBar;
+    private ListView listView;
 
     private FirebaseDatabase database;
     private DatabaseReference myRef;
@@ -45,7 +46,9 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     ArrayList items;
     ArrayList<String> listFile;
     ArrayAdapter<String> adapter;
-    MediaPlayer mMediaplayer;
+    MediaPlayer mediaPlayer;
+    boolean isPlay;
+    String musicName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,9 +56,12 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         setContentView(R.layout.activity_main);
 
 //        Log.d(TAG, "onCreate() 실행");
+        mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
 
+        Toast.makeText(MainActivity.this,"Please Internet Connect!!!", Toast.LENGTH_SHORT).show();
         initListView();
         initStorage();
+        isPlay = false;
 
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference(MESSAGES_CHILD);
@@ -91,16 +97,17 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         storage = FirebaseStorage.getInstance();
         storageRef = storage.getReferenceFromUrl("gs://mp3player-37680.appspot.com");
 
-        mMediaplayer = new MediaPlayer();
-        mMediaplayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
     }
 
     public void dataSet() {
         for (int i = 1; i < items.size(); i++) {
             items.set(i, items.get(i).toString().replace("{name=", ""));
             items.set(i, items.get(i).toString().replace("}", ""));
-            listFile.add(i-1, items.get(i).toString());
+            listFile.add(i - 1, items.get(i).toString());
         }
+        mProgressBar.setVisibility(ProgressBar.INVISIBLE);
         adapter.notifyDataSetChanged();
     }
 
@@ -109,18 +116,24 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
                 .addOnSuccessListener(new OnSuccessListener<Uri>() {
                     @Override
                     public void onSuccess(Uri uri) {
-                        try {
+                        if (!isPlay) {
+                            isPlay = true;
                             final String url = uri.toString();
-                            mMediaplayer.setDataSource(url);
-                            mMediaplayer.setOnPreparedListener(MainActivity.this);
-                            onPrepared(mMediaplayer);
-                            mMediaplayer.prepareAsync();
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                            mediaPlayer = new MediaPlayer();
+                            try {
+                                mediaPlayer.setDataSource(url);
+                                mediaPlayer.prepare();
+                                mediaPlayer.start();
+                                handler.sendEmptyMessage(1);
+                            } catch (IOException e) {
+                            }
+                        } else {
+                            isPlay = false;
+                            handler.sendEmptyMessage(0);
                         }
-
                     }
                 })
+
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
@@ -129,25 +142,19 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
                 });
     }
 
-    @Override
-    public void onPrepared(MediaPlayer mp) {
-        mp.start();
-    }
-
-    private final Handler httpHandler = new Handler() {
+    private final Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             Log.d(TAG, "handleMessage() 실행");
             super.handleMessage(msg);
             switch (msg.what) {
-                case 0: //HTTP SERVICE FAIL;
-                    Toast.makeText(MainActivity.this, "Server Connection failed.", Toast.LENGTH_SHORT).show();
-
+                case 0: //Music Stop
+                    Toast.makeText(MainActivity.this, "Music Stop", Toast.LENGTH_SHORT).show();
+                    mediaPlayer.release();
+                    mediaPlayer = null;
                     break;
                 case 1: //HTTP SERVICE SUCCESS;
-                    Intent intent = new Intent(MainActivity.this, MusicActivity.class);
-                    startActivity(intent);
-                    Toast.makeText(MainActivity.this, "Server Connection success.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Play : " + musicName, Toast.LENGTH_SHORT).show();
                     break;
             }
         }
@@ -155,7 +162,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        musicRef = storageRef.child("music/" + items.get(position+1));
+        musicRef = storageRef.child("music/" + items.get(position + 1));
+        musicName = items.get(position + 1).toString();
         fetchAudioUrlFromFirebase();
     }
 }
