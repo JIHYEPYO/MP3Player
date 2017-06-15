@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "736372581954",
+    "firebase_url": "https://mp3player-37680.firebaseio.com",
+    "project_id": "mp3player-37680",
+    "storage_bucket": "mp3player-37680.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:736372581954:android:c260af62e6cd769e",
+        "android_client_info": {
+          "package_name": "com.example.pyojihye.mp3player"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "736372581954-oj8fp87qkkjm7ntma2cnmjpmq6rjv6va.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.pyojihye.mp3player",
+            "certificate_hash": "f0092a3b06393b5555b63047cbb68d4543d29355"
+          }
+        },
+        {
+          "client_id": "736372581954-a71tgakqvkdrujljtopaabvb991jgjm7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcrylg9VnZcKtF1-zvkJBTFq4WrcyhT9Y"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "736372581954-a71tgakqvkdrujljtopaabvb991jgjm7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
