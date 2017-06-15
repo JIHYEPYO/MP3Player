@@ -47,8 +47,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     ArrayList<String> listFile;
     ArrayAdapter<String> adapter;
     MediaPlayer mediaPlayer;
+
     boolean isPlay;
     String musicName;
+    String url;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +60,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 //        Log.d(TAG, "onCreate() 실행");
         mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
 
-        Toast.makeText(MainActivity.this,"Please Internet Connect!!!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(MainActivity.this, "Please Internet Connect!!!", Toast.LENGTH_SHORT).show();
         initListView();
         initStorage();
         isPlay = false;
@@ -118,15 +120,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     public void onSuccess(Uri uri) {
                         if (!isPlay) {
                             isPlay = true;
-                            final String url = uri.toString();
+                            url = uri.toString();
                             mediaPlayer = new MediaPlayer();
-                            try {
-                                mediaPlayer.setDataSource(url);
-                                mediaPlayer.prepare();
-                                mediaPlayer.start();
-                                handler.sendEmptyMessage(1);
-                            } catch (IOException e) {
-                            }
+                            handler.sendEmptyMessage(1);
                         } else {
                             isPlay = false;
                             handler.sendEmptyMessage(0);
@@ -154,7 +150,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     mediaPlayer = null;
                     break;
                 case 1: //HTTP SERVICE SUCCESS;
-                    Toast.makeText(MainActivity.this, "Play : " + musicName, Toast.LENGTH_SHORT).show();
+                    try {
+                        mediaPlayer.setDataSource(url);
+                        mediaPlayer.prepare();
+                        mediaPlayer.start();
+                        Toast.makeText(MainActivity.this, "Play : " + musicName, Toast.LENGTH_SHORT).show();
+                    } catch (IOException e) {
+                    }
                     break;
             }
         }
